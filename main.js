@@ -8,6 +8,9 @@
   TODO:
    - switch main.js and io.js to have the main routes in main.js and not io.js 
      by using methods like .get() and .post().
+   - Using a router like http://github.com/defrex/node.routes.js/
+   - Maybe include and use Undderscore.js @ http://documentcloud.github.com/underscore/
+   - Go all crazy and use Simplex http://github.com/mshakhan/simplex/
 */
 
 var sys = require("sys");
@@ -17,14 +20,26 @@ var url = require("url");
 var io = require('./io');
 var httphelper = require("./lib/httphelper");
 
+PORT = 8080;
 IOLENGTH = 4;
 IOHOST = "http://djui.de";
 
+/*
+// Thanks furtivefelon @ http://github.com/furtivefelon/blog.js/blob/master/b.js
+getMap = {};
+postMap = {};
+
+b.get = function(path, handler) {
+  getMap[path] = handler;
+};
+
+b.post = function(path, handler) {
+  postMap[path] = handler;
+};
+*/
 
 var server = http.createServer(function(request, response) {
-  response.send = httphelper.send;
-  response.sendHTML = httphelper.sendHTML;
-  response.sendJSON = httphelper.sendJSON;
+  process.mixin(response, httphelper);
   
   var paths = {
     "/": function(req, res) {
@@ -45,5 +60,5 @@ var server = http.createServer(function(request, response) {
   else
     paths["*"].apply(this, [request, response]);
 });
-server.listen("8080");
-sys.puts("Server running at http://127.0.0.1:8080/");
+server.listen(PORT);
+sys.debug("Server running at http://127.0.0.1:" + PORT + "/");

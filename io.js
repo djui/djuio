@@ -3,8 +3,10 @@ var url = require("url");
 
 var db = require("./lib/db");
 var date = require("./lib/date");
+var eyes = require("./vendor/eyes");
 
-/* Function borrowed from Jason Davies and Jan Lehnardt */
+
+// Thanks Jason Davies, Jan Lehnardt
 function transform(length) {
   var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   var secret = "";
@@ -16,40 +18,47 @@ function transform(length) {
   return secret;
 }
 
-exports.welcomer = function(res) {
-  res.sendHTML(200, 
-    "Hejsan, this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> personal URL shortener.<br/>\n" + 
-    "Thanks to <a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!");
-}
+var io = {
+  welcomer: function(res) {
+    res.sendHTML(200, 
+      "Hejsan, this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> personal URL shortener.<br/>\n" + 
+      "Thanks to <a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!");
+  },
 
-exports.shorter = function(req, res) {   
-  uri = url.parse(req.url, true);   
-  if (typeof(uri.query) === 'undefined' || 
-      typeof(uri.query.url) === 'undefined' ||
-      uri.query.url == "") {
-    sys.error("URL parameter undefined");
-    res.send(200, "ERROR: URL parameter undefined");
-    return;
+  shorter: function(req, res) {   
+    uri = url.parse(req.url, true);   
+    if (typeof(uri.query) === 'undefined' || 
+        typeof(uri.query.url) === 'undefined' ||
+        uri.query.url == "") {
+      sys.error("URL parameter undefined");
+      res.sendPlain(200, "ERROR: URL parameter undefined");
+      return;
+    }
+
+    var shortUrl = IOHOST + "/" + transform(IOLENGTH);
+    var item = {
+      "id": shortUrl,
+      "target": uri.query.url, 
+      "date":  date.rfc3339(),
+      "counter": 0};        
+    db.store(item);
+    // sys.debug("Store: " + JSON.stringify(item));
+    sys.debug("Store: ");
+    eyes.inspect(item)
+
+    res.sendPlain(200, shortUrl);
+  },
+
+  expander: function(res) {
+    var target = db.lookup(IOHOST + uri.pathname);
+    sys.debug("Lookup: " + IOHOST + uri.pathname + " => " + target);
+    if (target !== null) {
+      res.sendHTML(302, "If you don't get redirected, please go to " + 
+        target + "\n", ["Location", target]);
+    } else
+      res.sendPlain(404, "Not Found\n");
   }
-
-  var shortUrl = IOHOST + "/" + transform(IOLENGTH);
-  var item = {
-    "id": shortUrl,
-    "target": uri.query.url, 
-    "date":  date.rfc3339(),
-    "counter": 0};        
-  db.store(item);
-  sys.debug("Store: " + JSON.stringify(item));
-
-  res.send(200, shortUrl);
 }
 
-exports.expander = function(res) {
-  var target = db.lookup(IOHOST + uri.pathname);
-  sys.debug("Lookup: " + IOHOST + uri.pathname + " => " + target);
-  if (target !== null) {
-    res.sendHTML(302, "If you don't get redirected, please go to " + 
-      target + "\n", ["Location", target]);
-  } else
-    res.send(404, "Not Found\n");
-}
+// CommonJS module support
+process.mixin(exports, io);
