@@ -24,19 +24,6 @@ PORT = 8080;
 IOLENGTH = 4;
 IOHOST = "http://djui.de";
 
-/*
-// Thanks furtivefelon @ http://github.com/furtivefelon/blog.js/blob/master/b.js
-getMap = {};
-postMap = {};
-
-b.get = function(path, handler) {
-  getMap[path] = handler;
-};
-
-b.post = function(path, handler) {
-  postMap[path] = handler;
-};
-*/
 
 var server = http.createServer(function(request, response) {
   process.mixin(response, httphelper);
