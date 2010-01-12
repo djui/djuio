@@ -17,7 +17,7 @@ function transform(length) {
 }
 
 exports.welcomer = function(res) {
-  res.printHTML(200, 
+  res.sendHTML(200, 
     "Hejsan, this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> personal URL shortener.<br/>\n" + 
     "Thanks to <a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!");
 }
@@ -28,7 +28,7 @@ exports.shorter = function(req, res) {
       typeof(uri.query.url) === 'undefined' ||
       uri.query.url == "") {
     sys.error("URL parameter undefined");
-    res.print(200, "ERROR: URL parameter undefined");
+    res.send(200, "ERROR: URL parameter undefined");
     return;
   }
 
@@ -41,15 +41,15 @@ exports.shorter = function(req, res) {
   db.store(item);
   sys.debug("Store: " + JSON.stringify(item));
 
-  res.print(200, shortUrl);
+  res.send(200, shortUrl);
 }
 
 exports.expander = function(res) {
   var target = db.lookup(IOHOST + uri.pathname);
   sys.debug("Lookup: " + IOHOST + uri.pathname + " => " + target);
   if (target !== null) {
-    res.printHTML(302, "If you don't get redirected, please go to " + 
+    res.sendHTML(302, "If you don't get redirected, please go to " + 
       target + "\n", ["Location", target]);
   } else
-    res.print(404, "File not found.");
+    res.send(404, "Not Found\n");
 }

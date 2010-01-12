@@ -22,9 +22,9 @@ IOHOST = "http://djui.de";
 
 
 var server = http.createServer(function(request, response) {
-  response.print = httphelper.print;
-  response.printHTML = httphelper.printHTML;
-  response.printJSON = httphelper.printJSON;
+  response.send = httphelper.send;
+  response.sendHTML = httphelper.sendHTML;
+  response.sendJSON = httphelper.sendJSON;
   
   var paths = {
     "/": function(req, res) {
