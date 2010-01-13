@@ -6,6 +6,9 @@
   Note: Later maybe switching to picard or express
   
   TODO:
+   - Implemented counter
+   = Implement stats
+   - Switch vendor code to git submodules (not couch, its buggy and was changed)
    - switch main.js and io.js to have the main routes in main.js and not io.js 
      by using methods like .get() and .post().
    - Using a router like http://github.com/defrex/node.routes.js/
@@ -17,12 +20,13 @@ var sys = require("sys");
 var http = require("http");
 var url = require("url");
 
+PORT = 8080;
+IOHASHLENGTH = 4;
+IOHOST = "http://djui.de";
+IODBNAME = "io";
+
 var io = require('./io');
 var httphelper = require("./lib/httphelper");
-
-PORT = 8080;
-IOLENGTH = 4;
-IOHOST = "http://djui.de";
 
 
 var server = http.createServer(function(request, response) {
@@ -36,7 +40,7 @@ var server = http.createServer(function(request, response) {
       io.shorter(req, res)
     },
     "*":function(req, res) {
-      io.expander(res)
+      io.expander(req, res)
     }
   };
 
