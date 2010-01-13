@@ -29,7 +29,7 @@ var httphelper = require("./lib/httphelper");
 
 // Thanks Boaz Yahav @ http://www.weberdev.com/get_example-4228.html
 function isUrl(s) {
-    var regexp = /^[A-Za-z]+:\/\/[A-Za-z0-9-_]+\\.[A-Za-z0-9-_%&\?\/.=]+$/;
+    var regexp = /^[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_%&?\/.=]+$/;
     return regexp.test(s);
 }
 
@@ -40,18 +40,22 @@ var server = http.createServer(function(req, res) {
         // @ http://nodejs.org/api.html#_url_module
         path = (url.parse(req.url, true)).pathname;
         
-        if (path == "/") {
+        if (path == "/~") {
             res.sendHTML(200, 
                          "Hejsan, this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> personal URL shortener.<br/>\n" + 
-                         "Thanks to <a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!");
+                         "Thanks to <a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!\n");
         } else if (path == "/shorten") {
             var uri = url.parse(req.url, true);
-            href = uri.query.url || "";
-            if (href === "") {
-                sys.debug("Href parameter undefined");
-                res.sendPlain(200, "ERROR: Href parameter undefined");
+            if (typeof(uri.query) === 'undefined' ||
+                typeof(uri.query.url) === 'undefined' ||
+                uri.query.url == "") {
+                sys.debug("Href parameter missing");
+                res.sendPlain(200, "ERROR: Href parameter missing");
                 return;
-            } else if (!isUrl(href)) {
+            }
+            
+            href = uri.query.url;
+            if (!isUrl(href)) {
                 sys.debug("Href parameter is not a valid URL");
                 res.sendPlain(200, "ERROR: Href parameter is not a valid URL");
                 return;

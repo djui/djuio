@@ -47,6 +47,14 @@ exports.doShorten = function(href, res) {
 
     // Shorten the provided href
     var hash = transform(IOHASHLENGTH);
+
+    // Check if hash is really shorter than href
+    if ((IOHOST + "/" + hash).length > href.length) {
+        sys.debug("URL is shorter " + href);
+        res.sendPlain(200, href);
+        return;
+    }
+
     var doc = {
         "hash": hash,
         "href": href, 
@@ -57,7 +65,7 @@ exports.doShorten = function(href, res) {
     // Store it in the datastore
     datastore.push(doc);
     // Also write to disk for fail-over
-    posix.write(dbhandle, JSON.stringify(doc) + "\n", null);
+    posix.write(dbhandle, JSON.stringify(doc) + ",\n", null);
     
     sys.debug("Stored " + JSON.stringify(doc));
     res.sendPlain(200, IOHOST + "/" + doc["hash"]);
@@ -75,7 +83,7 @@ exports.doExpand = function(hash, res) {
     
     if (doc === null) {
         sys.debug("Lookup failed for /" + hash);
-        res.sendPlain(404, "Not Found\n");
+        res.sendPlain(404, "ERROR: Not Found\n");
         return;
     }
     

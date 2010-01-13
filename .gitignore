@@ -1,1 +1,4 @@
 .DS_Store
+*~
+io.log
+io.db
