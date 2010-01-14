@@ -88,7 +88,7 @@ exports.doExpand = function(hash, res) {
     }
     
     sys.debug("Lookup succeeded for /" + hash + ": " + doc["href"]);
-    res.sendHTML(302, "If you don't get redirected, please go to <a href\"" + 
+    res.sendHTML(302, "If you don't get redirected, please go to <a href=\"" + 
                  doc["href"] + "\">" + doc["href"] + "</a>\n", 
                  [["Location", doc["href"]]]);
 };

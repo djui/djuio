@@ -43,7 +43,7 @@ var server = http.createServer(function(req, res) {
         if (path == "/~") {
             res.sendHTML(200, 
                          "Hejsan, this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> personal URL shortener.<br/>\n" + 
-                         "Thanks to <a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!\n");
+                         "Thanks <a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!\n");
         } else if (path == "/shorten") {
             var uri = url.parse(req.url, true);
             if (typeof(uri.query) === 'undefined' ||
@@ -61,7 +61,11 @@ var server = http.createServer(function(req, res) {
                 return;
             }
             io.doShorten(href, res);
-        } else {
+        } else if (path == "/") {
+            res.sendHTML(302, "If you don't get redirected, please go to <a href=\"http://www.djui.de/\">http://www.djui.de/</a>\n",
+                         [["Location", "http://www.djui.de/"]]);
+        }
+        else {
             var hash = path.substring(1);
             io.doExpand(hash, res);
         };
