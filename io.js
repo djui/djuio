@@ -110,17 +110,26 @@ exports.doStats = function(res) {
                  "</head>\n" + 
                  "\n" + 
                  "<body>\n" +
+                 "<h1>Statistics</h1>\n" +
                  "<table>\n" + 
                  "<tr>\n" + 
                  "<th>Date</th>" +
                  "<th>Counter</th>" +
                  "<th>Hash</th>" +
-                 "<th>Href</th>" +
+                 "<th align=\"left\">Href</th>" +
                  "</tr><tr>\n");
     
     var hashList = [];
     for (var i=datastore.length-1; i>=0; i--) {
-        if (datastore[i]["hash"] in hashList)
+        // Only select unique entries to be display
+        var found = false;
+        for (var h=0; h<hashList.length; h++) {
+            if (hashList[h] == datastore[i]["hash"]) {
+                found = true;
+                break;
+            }
+        }
+        if (found)
             continue;
         
         hashList.push(datastore[i]["hash"]);
@@ -128,13 +137,15 @@ exports.doStats = function(res) {
         // Don't use the "sendHTML()" function 
         // as the list might become long.
         res.sendBody("<td>" + datastore[i]["date"] + "</td>\n" + 
-                     "<td>" + datastore[i]["counter"] + "</td>\n" + 
+                     "<td align=\"right\">" + datastore[i]["counter"] + "</td>\n" + 
                      "<td>" + datastore[i]["hash"] + "</td>\n" + 
-                     "<td>" + datastore[i]["href"] + "</td>\n" + 
+                     "<td><a href=\"" + datastore[i]["href"] + "\">" + 
+                     datastore[i]["href"] + "</a></td>\n" + 
                      "</tr><tr>\n");
     }
     
     res.sendBody("</tr>\n" + 
+                 "</table>\n" +
                  "</body>\n" +
                  "</html>\n");
     res.finish();

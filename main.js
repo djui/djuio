@@ -61,9 +61,10 @@ var server = http.createServer(function(req, res) {
                 typeof(uri.query.url) === 'undefined' ||
                 uri.query.url == "") {
                 res.sendHTML(200, 
-                             "Hejsan, this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> " +
+                             "<h1>Hejsan,</h1>\n" +
+                             "<p>this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> " +
                              "personal URL shortener.<br/>\nThanks " +
-                             "<a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!\n");
+                             "<a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!</p>\n");
                 return;
             }
             
