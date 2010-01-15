@@ -3,16 +3,16 @@
   Description: Simple I/O url shortener.
   Author: Uwe Dauernheim, @uwe_
   Copyright: 2010 Kreisquadratur
-  Note: Later maybe switching to picard or express
+  - It features a simple statistics page ("/~stats")
+  - It has a counter and an append-only db, filesystem based 
   
   TODO:
-   - Implemented counter
-   - Implement stats
-   - Use a real database as datastore
-   - Using router methods like .get() and .post(), or...
-   - Using a router like http://github.com/defrex/node.routes.js/
-   - Maybe include and use Underscore.js @ http://documentcloud.github.com/underscore/
-   - Go all crazy and use Simplex http://github.com/mshakhan/simplex/
+  - Use a real database as datastore
+  - Using router methods like .get() and .post(), or...
+  - Using a router like http://github.com/defrex/node.routes.js/
+  - Maybe include and use Underscore.js @ http://documentcloud.github.com/underscore/
+  - Go all crazy and use Simplex http://github.com/mshakhan/simplex/
+  - Later maybe switching to picard or express
 */
 
 var sys = require("sys");
@@ -40,35 +40,55 @@ var server = http.createServer(function(req, res) {
         // @ http://nodejs.org/api.html#_url_module
         path = (url.parse(req.url, true)).pathname;
         
-        if (path == "/~") {
-            res.sendHTML(200, 
-                         "Hejsan, this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> personal URL shortener.<br/>\n" + 
-                         "Thanks <a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!\n");
-        } else if (path == "/shorten") {
+        if (path == "/") {
+            res.sendHTML(302, "If you don't get redirected, please go to " +
+                         "<a href=\"http://www.djui.de/\">http://www.djui.de/</a>\n",
+                         [["Location", "http://www.djui.de/"]]);
+        } else if (path == "/favicon.ico") {
+            res.sendPlain(404, "ERROR: Not Found\n");
+        } else if (path == "/robots.txt") {
+            res.sendPlain(200, "User-agent: *\nDisallow: /~*\n");
+        } else if (path == "/~stats") {
+            try {
+                io.doStats(res);
+            } catch (e) {
+                sys.error("ERROR: " + e.description);
+                res.sendPlain(500, "ERROR: " + e.description);
+            }
+        } else if (path == "/~") {
             var uri = url.parse(req.url, true);
             if (typeof(uri.query) === 'undefined' ||
                 typeof(uri.query.url) === 'undefined' ||
                 uri.query.url == "") {
-                sys.debug("Href parameter missing");
-                res.sendPlain(200, "ERROR: Href parameter missing");
+                res.sendHTML(200, 
+                             "Hejsan, this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> " +
+                             "personal URL shortener.<br/>\nThanks " +
+                             "<a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!\n");
                 return;
             }
             
-            href = uri.query.url;
-            if (!isUrl(href)) {
+            if (!isUrl(uri.query.url)) {
                 sys.debug("Href parameter is not a valid URL");
-                res.sendPlain(200, "ERROR: Href parameter is not a valid URL");
+                res.sendPlain(400, "ERROR: Href parameter is not a valid URL");
                 return;
             }
-            io.doShorten(href, res);
-        } else if (path == "/") {
-            res.sendHTML(302, "If you don't get redirected, please go to <a href=\"http://www.djui.de/\">http://www.djui.de/</a>\n",
-                         [["Location", "http://www.djui.de/"]]);
+            
+            try {
+                io.doShorten(uri.query.url, res);
+            } catch (e) {
+                sys.error("ERROR: " + e.description);
+                res.sendPlain(500, "ERROR: " + e.description);
+            }
         }
-        else {
+        else { // if (path == "/~.{4}")
             var hash = path.substring(1);
-            io.doExpand(hash, res);
-        };
+            try {
+                io.doExpand(hash, res);
+            } catch (e) {
+                sys.error("ERROR: " + e.description);
+                res.sendPlain(500, "ERROR: " + e.description);
+            }
+        }
     });
 io.initialize();
 server.listen(PORT);
