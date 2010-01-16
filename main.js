@@ -64,7 +64,12 @@ var server = http.createServer(function(req, res) {
                              "<h1>Hejsan,</h1>\n" +
                              "<p>this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> " +
                              "personal URL shortener.<br/>\nThanks " +
-                             "<a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!</p>\n");
+                             "<a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!</p>\n" +
+                             "<p>You can try it out yourself by taking this url:</p>\n" +
+                             "<strong><code>http://djui.de/~?url=</code></strong>" +
+                             "<code>http://your.page.to/be/shortened%3Fwith%3Dqueries</code>\n" +
+                             "<p><em>Hint: You need to <a href=\"http://djui.de/~65sx\">" +
+                             "percent-encode</a> your URL if it contains \"?\" queries.</em></p>\n");
                 return;
             }
             
