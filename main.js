@@ -29,7 +29,8 @@ var httphelper = require("./lib/httphelper");
 
 // Thanks Boaz Yahav @ http://www.weberdev.com/get_example-4228.html
 function isUrl(s) {
-    var regexp = /^[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_%&?#\/.=]+$/;
+    //             PROTO    : / / HOST          . COUNTRY / PATH            
+    var regexp = /^[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_%&?#\/.=:]+$/;
     return regexp.test(s);
 }
 
