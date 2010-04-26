@@ -47,7 +47,6 @@ exports.server = function() {
         sys.puts("[io] Href parameter is not a valid URL")
         httphelper.sendPlain(res, 400, "ERROR: Href parameter is not a valid URL")
       } else {
-        sys.puts("REALLY URL??? "+uri.query.url)
         try {
           io.doShorten(uri.query.url, res)
         } catch (e) {

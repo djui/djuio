@@ -103,7 +103,7 @@ exports.doExpand = function(hash, res) {
 
 exports.doStats = function(res) {
   // @todo Make this a template
-  res.sendHeader(res, 200, [["Content-Type", "text/html"]])
+  res.sendHeader(200, [["Content-Type", "text/html"]])
   res.write("<html>\n" + 
     "<head>\n" + 
     "<title>Djui's URL Shortener :: Statistics</title>\n" +
