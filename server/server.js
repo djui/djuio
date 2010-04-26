@@ -50,7 +50,7 @@ exports.server = function() {
         try {
           io.doShorten(uri.query.url, res)
         } catch (e) {
-          sys.error("ERROR: " + e.description)
+          sys.puts("[io] ERROR: " + e.description)
           httphelper.sendPlain(res, 500, "ERROR: " + e.description)
         }
       }
@@ -58,14 +58,14 @@ exports.server = function() {
       try {
         io.doExpand(hash[1], res)
       } catch (e) {
-        sys.error("ERROR: " + e.description)
+        sys.puts("[io] ERROR: " + e.description)
         httphelper.sendPlain(res, 500, "ERROR: " + e.description)
       }
     } else if (path == "/~stats") {
       try {
         io.doStats(res)
       } catch (e) {
-        sys.error("ERROR: " + e.description)
+        sys.puts("[io] ERROR: " + e.description)
         httphelper.sendPlain(res, 500, "ERROR: " + e.description)
       }
     } else {
