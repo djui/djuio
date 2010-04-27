@@ -1,17 +1,17 @@
 var sys = require("sys")
 var url = require("url")
 var io = require("./lib/io")
-var mu = require("./vendor/mu/mu")
+var fs = require("fs")
+var mustache = require("./vendor/mustache")
 var httphelper = require("./lib/httphelper").httphelper
 
-IOHOST = "http://djui.de"
 IODBPATH = "db/io.db"
 IOHASHLENGTH = 4
 IOHASHCHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
-mu.templateRoot = __dirname+"/templates"
-mu.templateExtension = ""
 io.initialize()
+var indexTemplate = fs.readFileSync(__dirname+"/templates/index.html")
+var statsTemplate = fs.readFileSync(__dirname+"/templates/stats.html")
 
 function isUrl(s) {
   try {
@@ -27,6 +27,7 @@ exports.getServer = function() {
   return function(req, res) {
     uri = url.parse(req.url, true)
     path = uri.pathname
+    host = "http://"+req.headers.host+"/"
     
     sys.puts("[io] "+req.method+" "+req.url)
     
@@ -34,9 +35,7 @@ exports.getServer = function() {
       if (typeof(uri.query) === 'undefined' ||
           typeof(uri.query.url) === 'undefined' ||
           uri.query.url == "") {
-        mu.render("index.html", {host: IOHOST}, {}, function(err, buffer) {
-           httphelper.sendHTML(res, 200, buffer)})
-      
+        httphelper.sendHTML(res, 200, mustache.to_html(indexTemplate, {host: host}))
       } else if (!isUrl(uri.query.url)) {
         sys.puts("[io] Href parameter is not a valid URL")
         httphelper.sendPlain(res, 400, "ERROR: Href parameter is not a valid URL")
@@ -48,7 +47,8 @@ exports.getServer = function() {
           httphelper.sendPlain(res, 500, "ERROR: " + e.description)
         }
       }
-    } else if (hash = path.match(new RegExp("^/(~["+IOHASHCHARS+"]{4})$"))) {
+    } else if (hash = path.match(
+        new RegExp("^/(~["+IOHASHCHARS+"]{"+IOHASHLENGTH+"})$"))) {
       try {
         io.doExpand(hash[1], res)
       } catch (e) {
@@ -57,7 +57,8 @@ exports.getServer = function() {
       }
     } else if (path == "/~stats") {
       try {
-        io.doStats(res)
+        var stats = io.doStats()
+        httphelper.sendHTML(res, 200, mustache.to_html(statsTemplate, {host: host, items: stats}))
       } catch (e) {
         sys.puts("[io] ERROR: " + e.description)
         httphelper.sendPlain(res, 500, "ERROR: " + e.description)

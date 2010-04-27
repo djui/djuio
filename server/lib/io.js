@@ -101,30 +101,14 @@ exports.doExpand = function(hash, res) {
     [["Location", doc["href"]]])
 }
 
-exports.doStats = function(res) {
-  // @todo Make this a template
-  res.sendHeader(200, [["Content-Type", "text/html"]])
-  res.write("<html>\n" + 
-    "<head>\n" + 
-    "<title>Djui's URL Shortener :: Statistics</title>\n" +
-    "</head>\n" + 
-    "\n" + 
-    "<body>\n" +
-    "<h1>Statistics</h1>\n" +
-    "<table>\n" + 
-    "<tr>\n" + 
-    "<th>Date</th>" +
-    "<th>Counter</th>" +
-    "<th>Hash</th>" +
-    "<th align=\"left\">Href</th>" +
-    "</tr><tr>\n")
-  
+exports.doStats = function() {
   var hashList = []
+  
   for (var i=datastore.length-1; i>=0; i--) {
     // Only select unique entries to be display
     var found = false
     for (var h=0; h<hashList.length; h++) {
-      if (hashList[h] == datastore[i]["hash"]) {
+      if (hashList[h]["hash"] == datastore[i]["hash"]) {
         found = true
         break
       }
@@ -132,21 +116,8 @@ exports.doStats = function(res) {
     if (found)
       continue
 
-    hashList.push(datastore[i]["hash"])
-
-    // Don't use the "sendHTML()" function 
-    // as the list might become long.
-    res.write("<td>" + datastore[i]["date"] + "</td>\n" + 
-    "<td align=\"right\">" + datastore[i]["counter"] + "</td>\n" + 
-    "<td>" + datastore[i]["hash"] + "</td>\n" + 
-    "<td><a href=\"" + datastore[i]["href"] + "\">" + 
-    datastore[i]["href"] + "</a></td>\n" + 
-    "</tr><tr>\n")
+    hashList.push(datastore[i])
   }
   
-  res.write("</tr>\n" + 
-               "</table>\n" +
-               "</body>\n" +
-               "</html>\n")
-  res.end()
+  return hashList
 }
