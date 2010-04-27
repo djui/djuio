@@ -27,7 +27,8 @@ exports.getServer = function() {
   return function(req, res) {
     uri = url.parse(req.url, true)
     path = uri.pathname
-    host = "http://"+req.headers.host+"/"
+    host = req.headers["x-forwarded-server"] || req.headers.host
+    host = "http://"+host+"/"
     
     sys.puts("[io] "+req.method+" "+req.url)
     
