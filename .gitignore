@@ -1,4 +1,4 @@
 .DS_Store
 *~
-io.log
-io.db*
+logs/io.log
+db/*.db*

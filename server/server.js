@@ -1,6 +1,7 @@
 var sys = require("sys")
 var url = require("url")
 var io = require("./lib/io")
+var mu = require("./vendor/mu/mu")
 var httphelper = require("./lib/httphelper").httphelper
 
 IOHOST = "http://djui.de"
@@ -8,6 +9,8 @@ IODBPATH = "db/io.db"
 IOHASHLENGTH = 4
 IOHASHCHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
+mu.templateRoot = __dirname+"/templates"
+mu.templateExtension = ""
 io.initialize()
 
 function isUrl(s) {
@@ -20,27 +23,20 @@ function isUrl(s) {
   }
 }
 
-exports.server = function() {  
+exports.getServer = function() {  
   return function(req, res) {
     uri = url.parse(req.url, true)
     path = uri.pathname
     
     sys.puts("[io] "+req.method+" "+req.url)
     
-    
     if (path == "/~") {
       if (typeof(uri.query) === 'undefined' ||
           typeof(uri.query.url) === 'undefined' ||
           uri.query.url == "") {
-          // @todo Make this a template
-          httphelper.sendHTML(res, 200, 
-            "<h1>Hejsan,</h1>\n" +
-            "<p>this is <a href=\"http://twitter.com/uwe_\">@uwe_'s</a> " +
-            "personal URL shortener.<br/>\nThanks " +
-            "<a href=\"http://twitter.com/uwe_\">@janl</a> for inspiration!</p>\n" +
-            "<p>You can try it out yourself by taking this url:</p>\n" +
-            "<strong><code>http://djui.de/~?url=</code></strong>" +
-            "<code>http://your.page.to/be/shortened?with=queries#and_hash</code>\n")
+        mu.render("index.html", {host: IOHOST}, {}, function(err, buffer) {
+           httphelper.sendHTML(res, 200, buffer)})
+      
       } else if (!isUrl(uri.query.url)) {
         sys.puts("[io] Href parameter is not a valid URL")
         httphelper.sendPlain(res, 400, "ERROR: Href parameter is not a valid URL")

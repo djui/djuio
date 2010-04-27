@@ -8,9 +8,9 @@ var host = '127.0.0.1'
 var port = 8001
 
 ///////////////////////////////////////////////////////////////////////////////////
-process.addListener('uncaughtException', function (err) {
-  sys.puts('[node] Caught exception: '+err)
-})
+// process.addListener('uncaughtException', function (err) {
+//   sys.puts('[node] Caught exception: '+err)
+// })
 
 process.addListener('SIGINT', function () {
   sys.puts('[node] Shutting down...')
@@ -21,5 +21,5 @@ if (process.argv[2] == "-i" || process.argv[2] == "--interactive")
   repl.start()
 //////////////////////////////////////////////////////////////////////////////////
 
-http.createServer(io.server()).listen(port, host)
+http.createServer(io.getServer()).listen(port, host)
 sys.puts('[node] Server listening on http://'+host+':'+port+'/')
