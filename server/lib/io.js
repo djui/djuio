@@ -93,7 +93,7 @@ exports.doExpand = function(hash, res) {
   // Store it in the datastore
   datastore.push(doc)
   // Also write to disk for fail-over
-  fs.writeSync(dbhandle, JSON.stringify(doc) + ",\n", null)
+  fs.writeSync(dbhandle, "," + JSON.stringify(doc) + "\n", null)
   
   sys.puts("[io] Lookup succeeded for /" + hash + ": " + doc["href"])
   httphelper.sendHTML(res, 302, "If you don't get redirected, please go to <a href=\"" + 
