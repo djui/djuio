@@ -1,26 +1,23 @@
 exports.httphelper = {
-  sendPlain: function(res, status, body, extra_headers) {
+  send: function(res, status, body, extra_headers) {
     res.sendHeader(status, (extra_headers || []).concat([
-      ["Content-Type", "text/plain"],
-      ["Content-Length", body.length]]));
-    res.write(body);
-    res.end();
+      ["Content-Length", body.length]]))
+    res.write(body)
+    res.end()
+  },
+  
+  sendPlain: function(res, status, body, extra_headers) {
+    this.send(res, status, body, (extra_headers || []).concat([
+      ["Content-Type", "text/plain"]]))
   },
   
   sendHTML: function(res, status, body, extra_headers) {
-    res.sendHeader(status, (extra_headers || []).concat([
-      ["Content-Type", "text/html"],
-      ["Content-Length", body.length]]));
-    res.write(body);
-    res.end();
+    this.send(res, status, body, (extra_headers || []).concat([
+      ["Content-Type", "text/html"]]))
   },
   
   sendJSON: function(res, status, obj, extra_headers) {
-    var body = JSON.stringify(obj);
-    res.sendHeader(status, (extra_headers || []).concat([
-      ["Content-Type", "text/json"],
-      ["Content-Length", body.length]]));
-    res.write(body);
-    res.end();
+    this.send(res, status, JSON.stringify(obj), (extra_headers || []).concat([
+      ["Content-Type", "text/json"]]))
   }
 }

@@ -39,7 +39,7 @@ exports.doShorten = function(href, res) {
   for (var i=0; i<datastore.length; i++) {
     if (datastore[i]["href"] == href) {
       sys.puts("[io] Already stored " + JSON.stringify(datastore[i]))
-      httphelper.sendPlain(res, 200, IOHOST + "/" + datastore[i]["hash"])
+      httphelper.sendPlain(res, 200, host + datastore[i]["hash"])
       return
     }
   }
@@ -48,7 +48,7 @@ exports.doShorten = function(href, res) {
   var hash = transform(IOHASHLENGTH)
   
   // Check if hash is really shorter than href
-  if ((IOHOST + "/" + hash).length > href.length) {
+  if ((host + hash).length > href.length) {
     sys.puts("[io] URL is shorter " + href)
     httphelper.sendPlain(res, 200, href)
     return
@@ -67,7 +67,7 @@ exports.doShorten = function(href, res) {
   fs.writeSync(dbhandle, "," + JSON.stringify(doc) + "\n", null)
   
   sys.puts("[io] Stored " + JSON.stringify(doc))
-  httphelper.sendPlain(res, 200, IOHOST + "/" + doc["hash"])
+  httphelper.sendPlain(res, 200, host + doc["hash"])
 }
 
 exports.doExpand = function(hash, res) {

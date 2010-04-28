@@ -2,3 +2,4 @@
 *~
 logs/io.log
 db/*.db*
+node.pid

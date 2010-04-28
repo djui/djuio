@@ -44,7 +44,7 @@ exports.getServer = function() {
         try {
           io.doShorten(uri.query.url, res)
         } catch (e) {
-          sys.puts("[io] ERROR: " + e.description)
+          sys.puts("[io] ERROR: doShorten - " + e.description)
           httphelper.sendPlain(res, 500, "ERROR: " + e.description)
         }
       }
@@ -53,7 +53,7 @@ exports.getServer = function() {
       try {
         io.doExpand(hash[1], res)
       } catch (e) {
-        sys.puts("[io] ERROR: " + e.description)
+        sys.puts("[io] ERROR: doExpand - " + e.description)
         httphelper.sendPlain(res, 500, "ERROR: " + e.description)
       }
     } else if (path == "/~stats") {
@@ -61,7 +61,7 @@ exports.getServer = function() {
         var stats = io.doStats()
         httphelper.sendHTML(res, 200, mustache.to_html(statsTemplate, {host: host, items: stats}))
       } catch (e) {
-        sys.puts("[io] ERROR: " + e.description)
+        sys.puts("[io] ERROR: doStats - " + e.description)
         httphelper.sendPlain(res, 500, "ERROR: " + e.description)
       }
     } else {
