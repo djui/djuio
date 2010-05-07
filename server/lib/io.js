@@ -1,9 +1,12 @@
 var sys = require("sys")
 var fs = require("fs")
 var path = require("path")
-var httphelper = require("./httphelper").httphelper
 var date = require("../vendor/date")
 
+IOHOST = "http://djui.de/"
+IOHASHLENGTH = 4
+IOHASHCHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+IODBPATH = "db/io.db"
 
 var datastore = []
 var dbhandle = null
@@ -34,12 +37,12 @@ exports.initialize = function() {
   dbhandle = fs.openSync(IODBPATH, "a+", 0644)
 }
 
-exports.doShorten = function(href, res) {
+exports.doShorten = function(res, href) {
   // Check if url is already stored
   for (var i=0; i<datastore.length; i++) {
     if (datastore[i]["href"] == href) {
       sys.puts("[io] Already stored " + JSON.stringify(datastore[i]))
-      httphelper.sendPlain(res, 200, host + datastore[i]["hash"])
+      res.simpleText(200, IOHOST + datastore[i]["hash"])
       return
     }
   }
@@ -48,9 +51,9 @@ exports.doShorten = function(href, res) {
   var hash = transform(IOHASHLENGTH)
   
   // Check if hash is really shorter than href
-  if ((host + hash).length > href.length) {
+  if ((IOHOST + hash).length > href.length) {
     sys.puts("[io] URL is shorter " + href)
-    httphelper.sendPlain(res, 200, href)
+    res.simpleText(200, href)
     return
   }
   
@@ -67,10 +70,10 @@ exports.doShorten = function(href, res) {
   fs.writeSync(dbhandle, "," + JSON.stringify(doc) + "\n", null)
   
   sys.puts("[io] Stored " + JSON.stringify(doc))
-  httphelper.sendPlain(res, 200, host + doc["hash"])
+  res.simpleText(200, IOHOST + doc["hash"])
 }
 
-exports.doExpand = function(hash, res) {
+exports.doExpand = function(res, hash) {
   var doc = null
   
   // We iterate in decreasing order, to get the highest
@@ -84,7 +87,7 @@ exports.doExpand = function(hash, res) {
   
   if (doc === null) {
     sys.puts("[io] Lookup failed for /" + hash)
-    httphelper.sendPlain(res, 404, "ERROR: Not Found\n")
+    res.notFound()
     return
   }
 
@@ -96,9 +99,7 @@ exports.doExpand = function(hash, res) {
   fs.writeSync(dbhandle, "," + JSON.stringify(doc) + "\n", null)
   
   sys.puts("[io] Lookup succeeded for /" + hash + ": " + doc["href"])
-  httphelper.sendHTML(res, 302, "If you don't get redirected, please go to <a href=\"" + 
-    doc["href"] + "\">" + doc["href"] + "</a>\n", 
-    [["Location", doc["href"]]])
+  res.redirect(doc["href"])
 }
 
 exports.doStats = function() {

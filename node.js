@@ -4,7 +4,7 @@ var url = require("url")
 var repl = require("repl")
 var fs = require("fs")
 var path = require("path")
-var io = require("./server/server")
+var server = require("./server/server")
 
 var host = "127.0.0.1"
 var port = 8001
@@ -29,7 +29,7 @@ switch (process.argv[2]) {
       } else {
         fs.writeFileSync("node.pid", process.pid.toString())
 
-        http.createServer(io.getServer()).listen(port, host)
+        server.start(port, host)
         sys.puts("[node] Server started at http://"+host+":"+port+"/")
 
         if (process.argv[3] == "-i" || process.argv[3] == "--interactive")
@@ -61,7 +61,7 @@ switch (process.argv[2]) {
       setTimeout(function() {
         fs.writeFileSync("node.pid", process.pid.toString())
         
-        http.createServer(io.getServer()).listen(port, host)
+        server.start(port, host)
         sys.puts("[node] Server started at http://"+host+":"+port+"/")
 
         if (process.argv[3] == "-i" || process.argv[3] == "--interactive")
