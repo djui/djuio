@@ -1,17 +1,24 @@
-var sys = require("sys")
+var sys = require("sys") // ONLY FOR DEBUG PURPOSES
 var url = require("url")
 var fs = require("fs")
-var router = require("./vendor/router").getRouter()
-var mustache = require("./vendor/mustache")
+var router = require("./lib/node-router").getServer()
+var mustache = require("./lib/mustache")
 var io = require("./lib/io")
 
 var indexTemplate
 var statsTemplate
 
+// Thanks Boaz Yahav @ http://www.weberdev.com/get_example-4228.html
+function isUrl(s) {
+  //             PROTO       : / /HOST             .COUNTRY       /PATH            
+  var regexp = /^[A-Za-z]{2,}:\/\/[A-Za-z0-9_]{2,}\.[A-Za-z]{2,}\/?.*$/;
+  return regexp.test(s);
+}
+
 exports.start = function(port, host) {
   io.initialize()
-  indexTemplate = fs.readFileSync(__dirname+"/templates/index.html")
-  statsTemplate = fs.readFileSync(__dirname+"/templates/stats.html")
+  indexTemplate = fs.readFileSync(__dirname+"/templates/index.html", "utf8")
+  statsTemplate = fs.readFileSync(__dirname+"/templates/stats.html", "utf8")
   return router.listen(port, host)    
 }
 
@@ -22,7 +29,7 @@ exports.end = function() {
 router.get("/~", index)
 router.get("/~stats", stats)
 router.get("/(~.{4})", expand)
-router.get("/~(.{5,})", shorten)
+router.get("/~.{5,}", shorten)
 
 function index(req, res) {
   res.simpleHtml(200, mustache.to_html(indexTemplate))
@@ -30,11 +37,12 @@ function index(req, res) {
 
 function stats(req, res) {
   try {
-    var stats = io.doStats()
-    res.simpleHtml(200, mustache.to_html(statsTemplate, {items: stats}))
+    io.getStats(function(stats) {
+      res.simpleHtml(200, mustache.to_html(statsTemplate, {items: stats}))      
+    })
   } catch (e) {
-    sys.puts("[io] ERROR: doStats - " + e.description)
-    res.simpleHtml(500, "ERROR: " + e.description)
+    console.log("[io] ERROR: doStats - " + e.description)
+    res.simpleText(500, "ERROR: " + e.description)
   }
 }
 
@@ -42,24 +50,22 @@ function expand(req, res, hash) {
   try {
     io.doExpand(res, hash)
   } catch (e) {
-    sys.puts("[io] ERROR: doExpand - " + e.description)
+    console.log("[io] ERROR: doExpand - " + e.description)
     res.simpleText(500, "ERROR: " + e.description)
   }
 }
 
-function shorten(req, res, href) {
-  sys.puts(sys.inspect(href))
-  try {
-    url.parse(href)
-  } catch (e) {
-    sys.puts("[io] Href parameter is not a valid URL")
+function shorten(req, res) {
+  var href = req.url.substring(2)
+  if (!isUrl(href)) {
+    console.log("[io] Href parameter is not a valid URL")
     res.simpleText(400, "ERROR: Href parameter is not a valid URL")
-    return
-  }
-  try {
-    io.doShorten(res, href)
-  } catch (e) {
-    sys.puts("[io] ERROR: doShorten - " + e.description)
-    res.simpleText(500, "ERROR: " + e.description)
+  } else {
+    try {
+      io.doShorten(res, href)
+    } catch (e) {
+      console.log("[io] ERROR: doShorten - " + e.description)
+      res.simpleText(500, "ERROR: " + e.description)
+    }
   }
 }

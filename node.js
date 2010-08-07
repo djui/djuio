@@ -9,6 +9,8 @@ var port = 8001
 
 process.addListener("uncaughtException", function (err) {
   console.log("[node] Caught exception: "+err)
+  fs.unlinkSync("node.pid")
+  process.exit(1)
 })
 
 process.addListener("SIGINT", function () {

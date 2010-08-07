@@ -1,15 +1,15 @@
 var sys = require("sys")
 var fs = require("fs")
 var path = require("path")
-var date = require("../vendor/date")
+var date = require("./rfc3339date")
+var nStore = require("../vendor/nstore/lib/nstore")
 
 IOHOST = "http://djui.de/"
 IOHASHLENGTH = 4
 IOHASHCHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-IODBPATH = "db/io.db"
+IODBPATH = process.argv[3] || "db/io.db"
 
-var datastore = []
-var dbhandle = null
+var datastore = null
 
 // Thanks Jason Davies, Jan Lehnardt
 function transform(length) {
@@ -23,36 +23,13 @@ function transform(length) {
   return secret
 }
 
-exports.initialize = function() {
-  // Read the old data
-  path.exists(IODBPATH, function(exists) {
-    if (!exists)
-      return
-    
-    var data = fs.readFileSync(IODBPATH).substring(1)
-    datastore = JSON.parse("[" + data + "]")
-  })
-
-  // Open the datastore file to be written (append)
-  dbhandle = fs.openSync(IODBPATH, "a+", 0644)
-}
-
-exports.doShorten = function(res, href) {
-  // Check if url is already stored
-  for (var i=0; i<datastore.length; i++) {
-    if (datastore[i]["href"] == href) {
-      sys.puts("[io] Already stored " + JSON.stringify(datastore[i]))
-      res.simpleText(200, IOHOST + datastore[i]["hash"])
-      return
-    }
-  }
-  
+function doStore(res, href) {
   // Shorten the provided href
   var hash = transform(IOHASHLENGTH)
   
   // Check if hash is really shorter than href
   if ((IOHOST + hash).length > href.length) {
-    sys.puts("[io] URL is shorter " + href)
+    console.log("[io] URL is shorter " + href)
     res.simpleText(200, href)
     return
   }
@@ -65,60 +42,61 @@ exports.doShorten = function(res, href) {
   }
   
   // Store it in the datastore
-  datastore.push(doc)
-  // Also write to disk for fail-over
-  fs.writeSync(dbhandle, "," + JSON.stringify(doc) + "\n", null)
-  
-  sys.puts("[io] Stored " + JSON.stringify(doc))
-  res.simpleText(200, IOHOST + doc["hash"])
+  datastore.save(hash, doc, function (err) {
+    if (err) throw err
+    console.log("[io] Stored " + JSON.stringify(doc))
+    res.simpleText(200, IOHOST + hash)
+  })  
+}
+
+exports.initialize = function() {
+  // Read the old data
+  datastore = nStore(IODBPATH)
+  // Uncomment this once when you want to compact the datastore on start
+  // datastore.compact()
+}
+
+exports.doShorten = function(res, href) {
+  // Check if url is already stored
+  datastore.all(function (doc, meta) {
+      return doc.href == href
+    }, function (err, docs, metas) {
+      if (err) throw err
+      if (docs.length > 0) {
+        console.log("[io] Already stored " + JSON.stringify(docs[0]))
+        res.simpleText(200, IOHOST + docs[0].hash)
+        return
+      } else
+        doStore(res, href)
+  })
 }
 
 exports.doExpand = function(res, hash) {
-  var doc = null
-  
-  // We iterate in decreasing order, to get the highest
-  // counter in the blob. -> "Append only" philosophy.
-  for (var i=datastore.length-1; i>=0; i--) {
-    if (datastore[i]["hash"] == hash) {
-        doc = datastore[i]
-        break
+  datastore.get(hash, function (err, doc, meta) {
+    if (err) {
+      if (err.errno == 2) {
+        console.log("[io] Lookup failed for /" + hash)
+        res.notFound()
+        return
+      } else throw err
     }
-  }
-  
-  if (doc === null) {
-    sys.puts("[io] Lookup failed for /" + hash)
-    res.notFound()
-    return
-  }
-
-  // Increase visiting counter
-  doc["counter"]++
-  // Store it in the datastore
-  datastore.push(doc)
-  // Also write to disk for fail-over
-  fs.writeSync(dbhandle, "," + JSON.stringify(doc) + "\n", null)
-  
-  sys.puts("[io] Lookup succeeded for /" + hash + ": " + doc["href"])
-  res.redirect(doc["href"])
+    // Increase visiting counter
+    doc.counter++
+    // Store it in the datastore
+    datastore.save(hash, doc, function (err) {
+        if (err) throw err
+        console.log("[io] Lookup succeeded for /" + hash + ": " + doc.href)
+        res.redirect(doc.href)
+    })
+  })  
 }
 
-exports.doStats = function() {
-  var hashList = []
-  
-  for (var i=datastore.length-1; i>=0; i--) {
-    // Only select unique entries to be display
-    var found = false
-    for (var h=0; h<hashList.length; h++) {
-      if (hashList[h]["hash"] == datastore[i]["hash"]) {
-        found = true
-        break
-      }
-    }
-    if (found)
-      continue
-
-    hashList.push(datastore[i])
-  }
-  
-  return hashList
+exports.getStats = function(delegate) {
+  // Search for several things at once
+  datastore.all(function (doc, meta) {
+      return true
+    }, function (err, docs, metas) {
+      if (err) throw err
+      delegate(docs)
+  })  
 }
