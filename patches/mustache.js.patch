@@ -1,0 +1,10 @@
+--- /djuio/server/vendor/mustache.js/mustache.js
++++ /djuio/server/lib/mustache.js
+@@ -322,3 +322,7 @@
+     }
+   });
+ }();
++
++for (var name in Mustache)
++  if (Object.prototype.hasOwnProperty.call(Mustache, name))
++    exports[name] = Mustache[name]

@@ -1,0 +1,10 @@
+--- /djuio/server/vendor/rfc3339date.js/rfc3339date.js
++++ /djuio/server/lib/rfc3339date.js
+@@ -133,3 +133,7 @@
+     return result;
+   }
+ }
++
++exports.rfc3339 = function() {
++  return new Date().toRFC3339LocaleString()
++}
