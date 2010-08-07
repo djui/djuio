@@ -52,6 +52,8 @@ function doStore(res, href) {
 exports.initialize = function() {
   // Read the old data
   datastore = nStore(IODBPATH)
+  // Uncomment this once when you want to compact the datastore on start
+  // datastore.compact()
 }
 
 exports.doShorten = function(res, href) {
