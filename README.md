@@ -3,7 +3,7 @@
 Simple I/O url shortener.
 
 - It features a simple statistics page ("/~stats")
-- It has a counter and an append-only db, filesystem based 
+- It uses nStore as database backend
 
 ## Authors
 
