@@ -1,6 +1,45 @@
 --- /djuio/server/vendor/node-router/lib/node-router.js
 +++ /djuio/server/lib/node-router.js
-@@ -258,11 +258,6 @@
+@@ -95,6 +95,9 @@
+   function del(pattern, handler) {
+     return addRoute("DELETE", pattern, handler);
+   }
++  function head(pattern, handler) {
++    return addRoute("HEAD", pattern, handler);
++  }
+ 
+   // This is a meta pattern that expands to a common RESTful mapping
+   function resource(name, controller, format) {
+@@ -200,7 +203,13 @@
+     res.notFound = function (message) {
+       notFound(req, res, message);
+     };
+-
++    
++    res.onlyHead = function (code, extra_headers) {
++      res.writeHead(code, (extra_headers || []).concat(
++                           [["Content-Type", content_type]]));
++      res.end();
++    }
++    
+     function doRoute() {
+       uri = url_parse(req.url);
+       path = uri.pathname;
+@@ -245,8 +254,11 @@
+           }
+         }
+       }
+-
+-      notFound(req, res);
++      
++      if (req.method === "HEAD")
++        res.onlyHead(200);
++      else
++        notFound(req, res);
+     }
+     doRoute();
+ 
+@@ -258,11 +270,6 @@
        host = host || "127.0.0.1";
      }
      server.listen(port, host);

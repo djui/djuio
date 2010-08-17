@@ -95,6 +95,9 @@ exports.getServer = function getServer(logger) {
   function del(pattern, handler) {
     return addRoute("DELETE", pattern, handler);
   }
+  function head(pattern, handler) {
+    return addRoute("HEAD", pattern, handler);
+  }
 
   // This is a meta pattern that expands to a common RESTful mapping
   function resource(name, controller, format) {
@@ -157,6 +160,7 @@ exports.getServer = function getServer(logger) {
   
   // Create the http server object
   var server = http.createServer(function (req, res) {
+
     // Enable logging on all requests using common-logger style
     logify(req, res, logger);
 
@@ -199,7 +203,13 @@ exports.getServer = function getServer(logger) {
     res.notFound = function (message) {
       notFound(req, res, message);
     };
-
+    
+    res.onlyHead = function (code, extra_headers) {
+      res.writeHead(code, (extra_headers || []).concat(
+                           [["Content-Type", content_type]]));
+      res.end();
+    }
+    
     function doRoute() {
       uri = url_parse(req.url);
       path = uri.pathname;
@@ -244,8 +254,11 @@ exports.getServer = function getServer(logger) {
           }
         }
       }
-
-      notFound(req, res);
+      
+      if (req.method === "HEAD")
+        res.onlyHead(200);
+      else
+        notFound(req, res);
     }
     doRoute();
 
